@@ -1,0 +1,283 @@
+scalar Date
+scalar File
+
+type Query {
+  users: [User!]!
+  comments: [Comment]!
+  stuff: [Stuff!]!
+  getStuffById(id: ID!): Stuff
+  searchByNameAndSlug(input: SearchInput): StuffPaging!
+  getStuffByUid: [Stuff]!
+  getCommentsByStuffId(stuffId: ID!): [Comment!]!
+  getSaleStuff: [Stuff!]!
+  getRelateStuff(stuffId: ID): [Stuff!]!
+  stuffByTypeSlug(typeSlug: String!): [Stuff!]!
+  types: [Type!]!
+  typeBySlug(slug: String!): Type!
+  categories: [Category!]!
+  categoryBySlug(slug: String!): Category!
+  getExchangeSuggestStuff(stuffId: ID): [Exchange]!
+}
+
+type Mutation {
+  createStuff(input: StuffInput): Stuff!
+  createType(name: String): Type!
+  updateStuff(input: UpdateStuffInput): Stuff!
+  createQuicklyExchangeStuff(input: QuicklyStuffInput): Exchange!
+  addExchangeStuff(input: ExchangeInput): Exchange
+  removeExchangeStuff(exchangeId: ID!): Exchange
+  updateSaleStuff(stuffId: ID!, input: StuffUpdateInput): Stuff!
+  deleteStuff(stuffId: ID!): String!
+  readTextFile(file: File!): String!
+  updateUser(input: UserUpdateInput!): User!
+}
+
+type User {
+  id: ID
+  information: Information
+  role: Role
+  point: Int
+  invitation_code: String
+  status: String
+  create_at: String
+  update_at: String
+  attendance_dates: [Date]!
+}
+
+type Comment {
+  id: ID
+  author: User
+  author_id: String
+  content: String
+  parent: Comment
+  stuff: Stuff
+  stuff_id: ID
+  create_at: Date
+  update_at: Date
+}
+
+type Stuff {
+  id: ID
+  author: User
+  name: String!
+  description: String
+  category: Category
+  address: String
+  comments: [Comment]!
+  payment_type_id: String
+  payment_type: PaymentType
+  condition: Int!
+  price: Int!
+  media: [File]!
+  status: Int!
+  type: Type!
+  transactions: [Transaction]!
+  create_at: Date!
+  update_at: Date
+  tags: [TagWithStuffValue]
+  auction: Auction
+}
+
+type Exchange {
+  id: ID
+  stuff_id: String
+  suggest_stuff: Stuff!
+  user: User
+  media: [File]!
+  name: String
+  description: String!
+  condition: Int
+  status: Int
+}
+
+type PaymentType {
+  id: String!
+  name: String!
+  slug: String!
+  stuffs: [Stuff!]!
+}
+
+type Auction {
+  id: String!
+  stuff_id: String!
+  stuff: Stuff!
+  initial_price: Int!
+  step_price: Int!
+  final_price: Int
+  bidding_history: [BiddingHistory!]!
+  create_at: Date!
+  update_at: Date
+  expire_at: Date
+}
+
+type BiddingHistory {
+  id: String!
+  auction_id: String
+  auction: Auction
+  author_id: String
+  author: User
+  bid_at: Date!
+  bid_price: Int!
+  create_at: Date!
+  update_at: Date
+}
+
+type Type {
+  id: ID
+  name: String
+  slug: String
+}
+
+type StuffCustomField {
+  final_price: Int
+  price: Int
+  step: Int
+  start_price: Int
+}
+
+type Transaction {
+  id: ID
+  custom_field: TransactionCustomField
+  customer: User!
+  status: Int
+  stuff: Stuff!
+  create_at: Date
+  update_at: Date
+}
+
+type TransactionCustomField {
+  final_price: Int
+  price: Int
+  step: Int
+}
+
+type Category {
+  id: ID
+  name: String
+  slug: String
+}
+
+type Information {
+  email: String
+  full_name: String
+  phone: [String]!
+  address: [String]!
+  avatar_url: String!
+}
+
+type Role {
+  id: String
+  name: String
+}
+
+type Tags {
+  id: ID
+  name: String
+  value: [String]
+  tagWithStuffValue: [TagWithStuffValue]
+}
+
+type TagWithStuffValue {
+  id: ID
+  tag_id: ID
+  tag_slug: String
+  tag: Tags
+  value: String
+  stuff_id: String
+  stuff: Stuff
+}
+
+type StuffPaging {
+  result: [Stuff]!
+  totalPages: Int!
+}
+
+input TagWithStuffValueInput {
+  tag_slug: String
+  value: String
+}
+
+input StuffInput {
+  author_id: String!
+  name: String!
+  type: String!
+  description: String
+  category: String!
+  condition: Int!
+  custom_fields: StuffCustomFieldsInput
+  media: [File]!
+  tags: [TagWithStuffValueInput]
+  payment_type: String!
+}
+
+input UpdateStuffInput {
+  stuff_id: ID
+  author_id: String!
+  name: String
+  type: String
+  description: String
+  category: String
+  condition: Int
+  custom_fields: StuffCustomFieldsInput
+  media: [File]
+  tags: [TagWithStuffValueInput]
+  delete_media: [String]
+  payment_type: String
+  update_at: Date
+}
+
+input StuffCustomFieldsInput {
+  price: Int
+  step: Int
+  initial_price: Int
+  duration: Int
+}
+
+input StuffUpdateInput {
+  name: String
+  description: String
+  type_id: String
+  category_id: String
+  address: String
+  condition: Int
+  price: Int
+  start_price: Int
+  final_price: Int
+  step: Int
+  media: [String]
+  tags: [TagWithStuffValueInput]
+}
+
+input SearchInput {
+  slug: String
+  keywords: String!
+  page: Int
+}
+
+input ExchangeInput {
+  stuffId: String!
+  suggestId: String!
+}
+
+input QuicklyStuffInput {
+  stuffId: String!
+  user_id: String
+  name: String!
+  media: [File]!
+  description: String
+  condition: Int!
+}
+
+input InformationInput {
+  phone: String
+  address: String
+  full_name: String
+}
+
+input UserUpdateInput {
+  id: String!
+  information: InformationInput
+  status: Int
+  point: Int
+  update_at: Date
+}

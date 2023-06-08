@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+type TransactionsCustomField {
+  phone       String
+  address     String
+  final_price Int?
+  price       Int?
+  step        Int?
+}
+
+type UsersInformations {
+  address    String?
+  avatar_url String?
+  email      String
+  full_name  String
+  phone      String?
+}
+
+model Category {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  name   String  @unique
+  slug   String  @unique
+  stuffs Stuff[]
+
+  @@map("categories")
+}
+
+model Comment {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  author_id String
+  author    User?     @relation(fields: [author_id], references: [id])
+  content   String
+  parent_id String?   @db.ObjectId
+  parent    Comment?  @relation("ChildComments", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children  Comment[] @relation("ChildComments")
+  stuff_id  String    @db.ObjectId
+  stuff     Stuff     @relation(fields: [stuff_id], references: [id])
+  create_at DateTime  @default(now())
+  update_at DateTime  @updatedAt
+
+  @@map("comments")
+}
+
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  target_id String   @db.ObjectId
+  time      DateTime @db.Date
+  type      String
+  url       String
+  user_id   String
+  user      User     @relation(fields: [user_id], references: [id])
+
+  @@map("notifications")
+}
+
+model Permission {
+  id            Int           @id @map("_id")
+  read          Boolean
+  resource_urls ResourceUrl[]
+  write         Boolean
+  role_id       Int
+  role          Role          @relation(fields: [role_id], references: [id])
+
+  @@map("permissions")
+}
+
+model PointHistory {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  change  Int
+  content String
+  time    DateTime @db.Date
+  user_id String
+  user    User     @relation(fields: [user_id], references: [id])
+
+  @@map("point_histories")
+}
+
+model ResourceUrl {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  url           String
+  permission_id Int
+  permission    Permission @relation(fields: [permission_id], references: [id])
+}
+
+model Role {
+  id          Int          @id @map("_id")
+  name        String
+  users       User[]
+  permissions Permission[]
+
+  @@map("roles")
+}
+
+model Stuff {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  author_id       String
+  author          User                @relation(fields: [author_id], references: [id])
+  category_id     String              @db.ObjectId
+  category        Category            @relation(fields: [category_id], references: [id])
+  address         String?
+  comments        Comment[]
+  condition       Int
+  description     String?
+  payment_type_id String              @db.ObjectId
+  payment_type    PaymentType         @relation(fields: [payment_type_id], references: [id])
+  price           Int?                @default(0)
+  media           String[]
+  status          Int?                @default(1)
+  tags            TagWithStuffValue[]
+  name            String
+  type_id         String              @db.ObjectId
+  type            Type                @relation(fields: [type_id], references: [id])
+  transactions    Transaction[]
+  auction         Auction?
+  create_at       DateTime            @default(now())
+  update_at       DateTime            @updatedAt
+  // exchangeId      String[]            @unique @db.ObjectId
+  // exchange        Stuff?              @relation("StuffToExchange", fields: [exchangeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  // stuff           Stuff?              @relation("StuffToExchange")
+  Exchange        Exchange[]
+
+  @@map("stuff")
+}
+
+model PaymentType {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  name   String  @unique
+  slug   String  @unique
+  stuffs Stuff[]
+
+  @@map("payment_types")
+}
+
+model Exchange {
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  stuff_id         String        @unique @db.ObjectId
+  suggest_stuff    Stuff?        @relation(fields: [suggest_stuff_id], references: [id])
+  suggest_stuff_id String?       @unique @db.ObjectId
+  user             User          @relation(fields: [user_id], references: [id])
+  user_id          String
+  media            String[]
+  name             String
+  description      String?
+  condition        Int
+  status           Int?          @default(0)
+  Transaction      Transaction[]
+
+  @@map("exchanges")
+}
+
+model Auction {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  stuff_id        String           @unique @db.ObjectId
+  stuff           Stuff            @relation(fields: [stuff_id], references: [id])
+  initial_price   Int
+  step_price      Int
+  final_price     Int?
+  bidding_history BiddingHistory[]
+  create_at       DateTime         @default(now())
+  update_at       DateTime         @updatedAt
+  expire_at       DateTime?
+
+  @@map("auctions")
+}
+
+model BiddingHistory {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  auction_id String   @unique @db.ObjectId
+  auction    Auction  @relation(fields: [auction_id], references: [id])
+  author_id  String   @unique
+  author     User     @relation(fields: [author_id], references: [id])
+  bid_at     DateTime @default(now())
+  bid_price  Int
+  create_at  DateTime @default(now())
+  update_at  DateTime @updatedAt
+
+  @@map("bidding_history")
+}
+
+model Tag {
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  slug              String              @unique
+  value             String[]
+  tagWithStuffValue TagWithStuffValue[]
+
+  @@map("tags")
+}
+
+model TagWithStuffValue {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  tag_slug String
+  value    String
+  stuff_id String @db.ObjectId
+  stuff    Stuff  @relation(fields: [stuff_id], references: [id])
+  tag      Tag    @relation(fields: [tag_slug], references: [slug])
+
+  @@map("tags_with_stuff_values")
+}
+
+// model TagsOnStuff {
+//   stuff_id     String              @db.ObjectId
+//   stuff        Stuff               @relation(fields: [stuff_id], references: [id])
+//   tag_value_id String            @db.ObjectId
+//   tags         TagWithStuffValue @relation(fields: [tag_value_id], references: [id])
+
+//   @@id([stuff_id, tag_value_id])
+// }
+
+enum TransactionStatus {
+  CANCELED
+  PENDING
+  ONGOING
+  SUCCESS
+  ORDERSENT
+  ORDEREIVED
+}
+
+model Transaction {
+  id           String                  @id @default(auto()) @map("_id") @db.ObjectId
+  custom_field TransactionsCustomField
+  author_id    String
+  author       User                    @relation("TransactionAuthor", fields: [author_id], references: [id])
+  customer_id  String
+  customer     User                    @relation("TransactionCustomer", fields: [customer_id], references: [id])
+  status       Int                     @default(0)
+  stuff_id     String                  @db.ObjectId
+  stuff        Stuff                   @relation(fields: [stuff_id], references: [id])
+  exchange_id  String?                 @db.ObjectId
+  exchange     Exchange?               @relation(fields: [exchange_id], references: [id])
+  create_at    DateTime                @default(now())
+  update_at    DateTime                @updatedAt
+
+  @@map("transactions")
+}
+
+model Type {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  name   String  @unique
+  slug   String  @unique
+  stuffs Stuff[]
+
+  @@map("types")
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+model User {
+  id                   String            @id @map("_id")
+  attendance_dates     DateTime[]
+  information          UsersInformations
+  invitation_code      String?
+  point                Int               @default(150)
+  role_id              Int
+  role                 Role              @relation(fields: [role_id], references: [id])
+  status               Int               @default(1)
+  transactions         Transaction[]     @relation("TransactionCustomer")
+  authoredTransactions Transaction[]     @relation("TransactionAuthor")
+  stuffs               Stuff[]
+  point_histories      PointHistory[]
+  create_at            DateTime          @default(now())
+  update_at            DateTime          @updatedAt
+  notications          Notification[]
+  comments             Comment[]
+  key                  Key?
+  bidding_history      BiddingHistory[]
+  Exchange             Exchange[]
+
+  @@map("users")
+}
+
+model Key {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  private_key        String
+  public_key         String
+  refresh_token      String
+  refresh_token_used String[] @default([])
+  create_at          DateTime @default(now())
+  update_at          DateTime @updatedAt
+  user_id            String   @unique
+  user               User     @relation(fields: [user_id], references: [id])
+
+  @@map("keys")
+}
