@@ -1,0 +1,102 @@
+scalar Date
+scalar File
+
+type Query {
+  users: [User!]!
+  comments: [Comment]!
+  stuff: [Stuff!]!
+  findAvailableStuff: [Stuff!]!
+  getStuffById(id: ID!): Stuff
+  searchByNameAndSlug(input: SearchInput): StuffPaging!
+  getAllPostedStuff(page: Int, limit: Int): [Stuff]!
+  getStuffByUid(excludeSuggested: Boolean): [Stuff]!
+  getAvailableStuffByUid: [Stuff]!
+  getCommentsByStuffId(stuffId: ID!): [Comment!]!
+  getSaleStuff: [Stuff!]!
+  getAllAuctions(isApproved: Boolean): [Auction!]!
+  getAllApprovedAuctions: [Auction!]!
+  getRelateStuff(stuffId: ID): [Stuff!]!
+  stuffByTypeSlug(typeSlug: String!): [Stuff!]!
+  types: [Type!]!
+  typeBySlug(slug: String!): Type!
+  categories: [Category!]!
+  categoryBySlug(slug: String!): Category!
+  getTransactionsByUserID: [Transaction!]!
+  getTransactionByID(id: ID!): Transaction
+  getPickupTransactions: [Transaction!]!
+  conversations: [Conversation!]!
+  messages(channelId: String!): [Message!]!
+  getExchangeSuggestStuff(stuffId: ID): [SuggestedStuff]!
+  getNotificationByUID(includeOfMod: Boolean): [Notification!]!
+  getUnreadNotification: ReturnTotalUnreadNotification
+  getPointHistoryByUserId(userId: String): [PointHistory]!
+  filterListTransaction(filter: Int!): [Transaction]!
+  getBiddingHistory(stuff_id: ID!): [BiddingHistory]!
+  getIssueByTransactionId(transaction_id: String!): [TransactionIssue]!
+  getIssueById(id: String!): TransactionIssue!
+  getAuctionByStuffId(stuffId: ID!): Auction
+  getFeedbackById(feedback_id: String!): Feedback!
+  getFeedBackByUid: [Feedback]
+  isFirstLogin: Boolean!
+  getAllStuffIssues: [StuffIssue!]!
+  getStuffIssueById(id: ID!): StuffIssue
+  getAllStuffIssuesByUID: [StuffIssue!]!
+  userGetFeedback: [Feedback]
+  viewOrtherFeedback(id: String): [Feedback]
+  viewOrtherRating(id: String): Float
+  adminTendency(start: Date, end: Date): Tendency
+  getFiveRichest: [User]
+  getFiveHightestTransaction(start: Date, end: Date): [Transaction]
+  getUserCreated(start: Date, end: Date): [User]
+}
+
+type ReturnTotalUnreadNotification {
+  total: Int
+  messages: Int
+}
+
+type Mutation {
+  createStuff(input: StuffInput): Stuff!
+  createType(name: String): Type!
+  updateStuff(input: UpdateStuffInput): Stuff!
+  createQuicklyExchangeStuff(input: QuicklyStuffInput): SuggestedStuff!
+  addExchangeStuff(input: ExchangeInput): SuggestedStuff
+  removeExchangeStuff(exchangeId: ID!): SuggestedStuff
+  deleteStuff(stuffId: ID!): String!
+  readTextFile(file: File!): String!
+  updateUserInfor(input: UserUpdateInforInput!): User!
+  createTransaction(input: TransactionInput!): Transaction!
+  MODConfirmReceivedStuff(input: TransactionEvidence!): Transaction
+  MODConfirmPickup(input: TransactionEvidence!): Transaction
+  MODCreateIssue(input: MODCreateIssue): Transaction!
+  handleIssue(input: HandleIssue): TransactionIssue!
+  updateMeetingDay(transactionId: String!, date: Date!): Transaction!
+  userRequestCancel(input: UserRequestCancel): Transaction!
+  userFeedback(input: FeedbackInput!): Feedback!
+  startConversation(
+    partnerId: String!
+    type: String!
+    stuffId: ID
+    exchangeStuffId: ID
+  ): Conversation
+  detachStuffFromConversation(channelId: String!, all: Boolean): Conversation!
+  createNotificationType(name: String!, slug: String!): NotificationType
+  testNotification: Notification!
+  sendMessage(message: MessageInput): Message!
+  placeABid(stuff_id: ID!, bidding_price: Int!): BiddingHistory
+  startAuction(stuffId: ID!): Auction
+  approveAuction(stuffId: ID!): Auction
+  markReadNotification(id: ID!): Notification
+  markReadAllNotification: String
+  MODDeleteStuff(stuffId: ID!): String!
+  changeUserStatus(id: String!, status: Int!): User!
+  inviteFriend(inviteCode: String!): User!
+  createStuffIssue(input: CreateStuffIssue!): StuffIssue
+  confirmStuffIssueStatus(id: ID!): StuffIssue
+}
+
+# type Subscription {
+#   newSuggestStuff(channelId: String!): SuggestedStuff!
+# }
+
+i delete query part
